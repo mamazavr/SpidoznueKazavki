@@ -1,0 +1,40 @@
+version: "3.8"
+
+services:
+  php_advanced:
+    image: php:8.1-apache
+    build:
+      context: .docker/php
+    restart: always
+    ports:
+      - "8081:80"
+    volumes:
+      - .:/var/www/html
+    networks:
+      - php_advanced
+
+  mysql_db:
+    image: mysql:8
+    restart: always
+    ports:
+      - "33061:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - "mysql_db_volume:/var/lib/mysql"
+    networks:
+      - php_advanced
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8083:8080"
+    networks:
+      - php_advanced
+
+networks:
+  php_advanced:
+
+volumes:
+  mysql_db_volume:
