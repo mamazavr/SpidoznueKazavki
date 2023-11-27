@@ -2,9 +2,7 @@
 class ProductStorage {
     public function get($name) {}
     public function set($name, $value) {}
-    public function save() {}
-    public function update() {}
-    public function delete() {}
+
 }
 
 class ProductService {
