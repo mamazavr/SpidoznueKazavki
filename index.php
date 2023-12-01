@@ -1,7 +1,42 @@
 <?php
 
+interface TaxiFactory
+{
+    public function createTaxi();
+}
 
-class taxi
+interface Taxi
+{
+    public function getModel();
+
+    public function getPrice();
+}
+
+class EconomyTaxiFactory implements TaxiFactory
+{
+    public function createTaxi()
+    {
+        return new EconomyTaxi("fiat");
+    }
+}
+
+class StandardTaxiFactory implements TaxiFactory
+{
+    public function createTaxi()
+    {
+        return new StandardTaxi("toyota");
+    }
+}
+
+class LuxuryTaxiFactory implements TaxiFactory
+{
+    public function createTaxi()
+    {
+        return new LuxuryTaxi("mercedes");
+    }
+}
+
+class EconomyTaxi implements Taxi
 {
     protected $model;
 
@@ -17,45 +52,64 @@ class taxi
 
     public function getPrice()
     {
-        return 0;
-    }
-}
-class EconomyTaxi extends taxi
-{
-    public function getPrice()
-    {
         return 10;
     }
 }
-class StandardTaxi extends taxi
+
+class StandardTaxi implements Taxi
 {
+    protected $model;
+
+    public function __construct($model)
+    {
+        $this->model = $model;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
     public function getPrice()
     {
         return 35;
     }
 }
 
-class LuxuryTaxi extends taxi
+class LuxuryTaxi implements Taxi
 {
+    protected $model;
+
+    public function __construct($model)
+    {
+        $this->model = $model;
+    }
+
+    public function getModel()
+    {
+        return $this->model;
+    }
+
     public function getPrice()
     {
         return 89.99;
     }
 }
 
-$client = "luxury";
+$client = "economy";
 
 if ($client === "economy") {
-    $taxi = new EconomyTaxi("fiat");
-} elseif ($client === "standard") {
-    $taxi = new StandardTaxi("toyota");
+    $factory = new EconomyTaxiFactory();
+} elseif ($clientType === "standard") {
+    $factory = new StandardTaxiFactory();
 } elseif ($client === "luxury") {
-    $taxi = new LuxuryTaxi("mercedes");
+    $factory = new LuxuryTaxiFactory();
 } else {
     die("Невірний тип таксі");
 }
 
+$taxi = $factory->createTaxi();
+
 echo "машинa: " . $taxi->getModel() . "\n";
 echo "ціна: €" . $taxi->getPrice() . "\n";
-
 
