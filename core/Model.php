@@ -10,7 +10,7 @@ abstract class Model
 {
     use Queryable;
 
-    public int $id;
+    protected int $id;
 
     public function toArray(): array
     {
@@ -19,7 +19,7 @@ abstract class Model
         $props = $reflect->getProperties(ReflectionProperty::IS_PUBLIC);
         $vars = (array) $this;
 
-        foreach($props as $prop) {
+        foreach ($props as $prop) {
             $data[$prop->getName()] = $vars[$prop->getName()] ?? null;
         }
 
