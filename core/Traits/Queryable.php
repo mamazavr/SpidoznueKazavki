@@ -6,7 +6,7 @@ use PDO;
 
 trait Queryable
 {
-    protected static string|null $tableName = null;
+    protected static ?string $tableName = null;
     protected static string $query = '';
     protected array $commands = [];
     protected array $select = [];
@@ -14,6 +14,7 @@ trait Queryable
     protected array $where = [];
     protected string $orderBy = '';
     protected string $limit = '';
+
 
     /**
      * @param array $columns (e.g. ['name', 'surname'], ['users.name as u_name']) => SELECT name, surname ....
@@ -48,6 +49,18 @@ trait Queryable
         return $this->select()->getOne();
     }
 
+    /**
+     * INSERT INTO table_name
+     * (columns...) [placeholders]
+     * VALUES
+     * (values....) [placeholders]
+     * @param array $fields
+     * [
+     *  'name' => '...',
+     *  'content' => '...'
+     * ]
+     * @return false|int
+     */
     public function create(array $fields): false|int
     {
         $params = $this->prepareQueryParams($fields);
@@ -70,7 +83,7 @@ trait Queryable
         $this->query = "DELETE FROM " . $this->from . " WHERE id = :id";
 
         $query = db()->prepare($this->query);
-        $query->bindParam('id', $id);
+        $query->bindParam('id', $id, PDO::PARAM_INT);
 
         return $query->execute();
     }
@@ -82,7 +95,7 @@ trait Queryable
 
         return [
             'keys' => implode(', ', $keys),
-            'placeholders' => implode(', ', $placeholders)
+            'placeholders' => implode(', ', $placeholders),
         ];
     }
 
@@ -100,4 +113,55 @@ trait Queryable
     {
         return db()->query($this->query)->fetchObject(static::class);
     }
+
+
+    /**
+     * Add WHERE clause to the query.
+     *
+     * @param array $conditions
+     * @return static
+     */
+    public function where(array $conditions): static
+    {
+        $this->resetQuery();
+        $this->where = $conditions;
+
+        $whereClause = implode(' AND ', array_map(fn ($key) => "$key = :$key", array_keys($this->where)));
+        $this->query = "SELECT " . implode(', ', $this->select) . " FROM " . $this->from . " WHERE $whereClause ";
+
+        $this->commands[] = 'where';
+
+        return $this;
+    }
+
+    /**
+     * Update records in the database.
+     *
+     * @param array $fields
+     * @return bool
+     */
+    public function update(array $fields): bool
+    {
+        $this->query = "UPDATE " . $this->from . " SET ";
+
+        $setClause = implode(', ', array_map(fn ($key) => "$key = :$key", array_keys($fields)));
+        $this->query .= $setClause;
+
+        if (!empty($this->where)) {
+            $whereClause = implode(' AND ', array_map(fn ($key) => "$key = :$key", array_keys($this->where)));
+            $this->query .= " WHERE $whereClause";
+        }
+
+        $query = db()->prepare($this->query);
+
+        $params = array_merge($fields, $this->where);
+        if (!$query->execute($params)) {
+            return false;
+        }
+
+        $query->closeCursor();
+
+        return true;
+    }
+
 }
