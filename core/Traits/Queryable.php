@@ -48,18 +48,6 @@ trait Queryable
         return $this->select()->getOne();
     }
 
-    /**
-     * INSERT INTO table_name
-     * (columns...) [placeholders]
-     * VALUES
-     * (values....) [placeholders]
-     * @param array $fields
-     * [
-     *  'name' => '...',
-     *  'content' => '...'
-     * ]
-     * @return  false|int
-     */
     public function create(array $fields): false|int
     {
         $params = $this->prepareQueryParams($fields);
