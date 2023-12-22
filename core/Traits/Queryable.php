@@ -15,7 +15,6 @@ trait Queryable
     protected string $orderBy = '';
     protected string $limit = '';
 
-
     /**
      * @param array $columns (e.g. ['name', 'surname'], ['users.name as u_name']) => SELECT name, surname ....
      * @return static
@@ -114,7 +113,6 @@ trait Queryable
         return db()->query($this->query)->fetchObject(static::class);
     }
 
-
     /**
      * Add WHERE clause to the query.
      *
@@ -130,6 +128,41 @@ trait Queryable
         $this->query = "SELECT " . implode(', ', $this->select) . " FROM " . $this->from . " WHERE $whereClause ";
 
         $this->commands[] = 'where';
+
+        return $this;
+    }
+
+    /**
+     * Add ORDER BY clause to the query.
+     *
+     * @param string $column
+     * @param string $direction
+     * @return static
+     */
+    public function orderBy(string $column, string $direction = 'ASC'): static
+    {
+        $this->resetQuery();
+        $this->orderBy = "ORDER BY $column $direction ";
+        $this->query .= $this->orderBy;
+
+        $this->commands[] = 'orderBy';
+
+        return $this;
+    }
+
+    /**
+     * Add LIMIT clause to the query.
+     *
+     * @param int $limit
+     * @return static
+     */
+    public function limit(int $limit): static
+    {
+        $this->resetQuery();
+        $this->limit = "LIMIT $limit ";
+        $this->query .= $this->limit;
+
+        $this->commands[] = 'limit';
 
         return $this;
     }
@@ -163,5 +196,4 @@ trait Queryable
 
         return true;
     }
-
 }
