@@ -6,18 +6,18 @@ use PDO;
 
 class Db
 {
-    static protected PDO|null $instance = null;
+    protected static ?PDO $instance = null;
 
-    static public function connect(): PDO
+    public static function connect(): PDO
     {
-        if (is_null(static::$instance)) {
+        if (is_null(self::$instance)) {
             $dsn = "mysql:host=" . config('db.host') . ";dbname=" . config('db.database');
             $options = [
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ];
 
-            static::$instance = new PDO(
+            self::$instance = new PDO(
                 $dsn,
                 config('db.user'),
                 config('db.password'),
@@ -25,6 +25,6 @@ class Db
             );
         }
 
-        return static::$instance;
+        return self::$instance;
     }
 }
