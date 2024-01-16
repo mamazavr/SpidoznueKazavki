@@ -13,11 +13,11 @@ class Router
 
     public static function add(string $route, array $params): void
     {
-        $route = preg_replace('/\//', '\\/', $route);
-        $route = preg_replace('/\{([a-z_]+):([^}]+)\}/', '(?P<$1>$2)', $route);
-        $route = "/^$route$/i";
+        $pattern = preg_replace('/\//', '\\/', $route);
+        $pattern = preg_replace('/\{([a-z_]+):([^}]+)\}/', '(?P<$1>$2)', $pattern);
+        $pattern = "/^$pattern$/i";
 
-        static::$routes[$route] = $params;
+        static::$routes[$pattern] = $params;
     }
 
     public static function dispatch(string $uri): string
@@ -27,10 +27,7 @@ class Router
 
         try {
             if (static::match($uri)) {
-                // check HTTP method
                 static::checkRequestMethod();
-
-                // get controller
                 $controller = static::getController();
                 $action = static::getAction($controller);
 
@@ -42,7 +39,11 @@ class Router
                 throw new \Exception("Route not found", 404);
             }
         } catch (\Exception $e) {
-            $response = ['code' => $e->getCode(), 'body' => null, 'errors' => [$e->getMessage()]];
+            $response = [
+                'code' => $e->getCode(),
+                'body' => null,
+                'errors' => [$e->getMessage()]
+            ];
         }
 
         return json_response($response['code'], [
@@ -60,7 +61,6 @@ class Router
         }
 
         unset(static::$params['action']);
-
         return $action;
     }
 
@@ -73,7 +73,6 @@ class Router
         }
 
         unset(static::$params['controller']);
-
         return new $controllerName;
     }
 
@@ -104,19 +103,14 @@ class Router
 
     private static function buildParams(string $route, array $matches, array $params): array
     {
-        preg_match_all('/\(\?P<[\w]+>(\\\\)?([\w\.][\+]*)\)/', $route, $types);
-        $matches = array_filter($matches, 'is_string', ARRAY_FILTER_USE_KEY);
+        $lastKey = array_key_last(static::$convertTypes);
+        $step = 0;
+        $types = array_map(fn ($value) => str_replace('+', '', $value), static::$convertTypes[$lastKey]);
 
-        if (!empty($types)) {
-            $lastKey = array_key_last($types);
-            $step = 0;
-            $types[$lastKey] = array_map(fn($value) => str_replace('+', '', $value), $types[$lastKey]);
-
-            foreach ($matches as $name => $match) {
-                settype($match, static::$convertTypes[$types[$lastKey][$step]]);
-                $params[$name] = $match;
-                $step++;
-            }
+        foreach ($matches as $name => $match) {
+            settype($match, $types[$step]);
+            $params[$name] = $match;
+            $step++;
         }
 
         return $params;
