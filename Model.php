@@ -3,8 +3,6 @@
 namespace Core;
 
 use Core\Traits\Queryable;
-use ReflectionClass;
-use ReflectionProperty;
 
 abstract class Model
 {
@@ -19,7 +17,7 @@ abstract class Model
         $props = $reflect->getProperties(ReflectionProperty::IS_PUBLIC);
         $vars = (array) $this;
 
-        foreach($props as $prop) {
+        foreach ($props as $prop) {
             $data[$prop->getName()] = $vars[$prop->getName()] ?? null;
         }
 
